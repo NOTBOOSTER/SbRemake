@@ -219,15 +219,17 @@ public class Main {
             }
         }
         System.out.println("Starting...");
+        String host = "0.0.0.0";
         int port = 25565;
         try {
-            port = Integer.parseInt(args[0]);
+            if (args.length > 0) host = args[0];
+            if (args.length > 1) port = Integer.parseInt(args[1]);
         } catch (Exception ignored) {
         }
         var key = Key.key("skyblock", "moonglare");
         Galatea.MOONGLARE_KEY = MinecraftServer.getBiomeRegistry().register(key, Galatea.MOONGLARE);
-        server.start("127.0.0.1", port);
-        System.out.println("Started Server on port " + (port));
+        server.start(host, port);
+        System.out.println("Started Server on " + host + ":" + port);
         CONSOLE_THREAD = java.lang.Thread.ofPlatform().name("Console").start(() -> {
             BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
             ConsoleSender console = new ConsoleSender();
