@@ -4,6 +4,7 @@ import me.carscupcake.sbremake.blocks.MiningBlock;
 import me.carscupcake.sbremake.command.DebugCommand;
 import me.carscupcake.sbremake.config.ConfigFile;
 import me.carscupcake.sbremake.config.ConfigSection;
+import me.carscupcake.sbremake.entity.slayer.SlayerEntity;
 import me.carscupcake.sbremake.item.ISbItem;
 import me.carscupcake.sbremake.item.Recipe;
 import me.carscupcake.sbremake.item.ability.Ability;
@@ -16,7 +17,6 @@ import me.carscupcake.sbremake.item.modifiers.reforges.Reforge;
 import me.carscupcake.sbremake.listeners.*;
 import me.carscupcake.sbremake.player.SkyblockPlayer;
 import me.carscupcake.sbremake.player.accessories.AccessoryBag;
-import me.carscupcake.sbremake.player.accessories.AccessoryBagPowers;
 import me.carscupcake.sbremake.player.hotm.HotmUpgrade;
 import me.carscupcake.sbremake.player.potion.IPotion;
 import me.carscupcake.sbremake.player.potion.Potion;
@@ -24,7 +24,8 @@ import me.carscupcake.sbremake.player.skill.impl.*;
 import me.carscupcake.sbremake.util.EnchantmentUtils;
 import me.carscupcake.sbremake.util.PlayerBrodcastOutputStream;
 import me.carscupcake.sbremake.util.SkyblockSimpleLogger;
-import me.carscupcake.sbremake.util.item.Gui;
+import me.carscupcake.sbremake.util.gui.Gui;
+import me.carscupcake.sbremake.util.gui.InputGui;
 import me.carscupcake.sbremake.util.lootTable.blockLoot.BlockLootTable;
 import me.carscupcake.sbremake.worlds.SkyblockWorld;
 import me.carscupcake.sbremake.worlds.Time;
@@ -42,10 +43,7 @@ import net.minestom.server.command.ConsoleSender;
 import net.minestom.server.command.builder.Command;
 import net.minestom.server.event.player.*;
 import net.minestom.server.event.server.ServerTickMonitorEvent;
-import net.minestom.server.extras.MojangAuth;
 import net.minestom.server.extras.lan.OpenToLAN;
-import net.minestom.server.extras.mojangAuth.MojangCrypt;
-import net.minestom.server.extras.velocity.VelocityProxy;
 import net.minestom.server.instance.block.Block;
 import net.minestom.server.network.packet.client.play.ClientConfigurationAckPacket;
 import net.minestom.server.network.packet.client.play.ClientDebugSampleSubscriptionPacket;
@@ -89,21 +87,22 @@ public class Main {
     public static volatile SkyblockSimpleLogger LOGGER;
     public static volatile boolean isCracked = false;
     static long tickDelay = -1;
-    private volatile static ConfigFile crackedRegistry;
-    public static final boolean IS_DEBUG = System.getenv().getOrDefault("DEVELOPEMENT", "false").equals("true");
+    public volatile static ConfigFile crackedRegistry;
+    public static boolean IS_DEBUG = System.getenv().getOrDefault("DEVELOPEMENT", "false").equals("true");
 
     public static void main(String[] args) throws Exception {
         MinecraftServer.LoggerProvider = new SkyblockLoggerProvider();
         LOGGER = (SkyblockSimpleLogger) MinecraftServer.LoggerProvider.getLogger(Main.class);
         MinecraftServer.LOGGER = LOGGER;
         Auth auth = new Auth.Online();
+        boolean openToLan = false;
         var itt = Arrays.stream(args).iterator();
         while (itt.hasNext()) {
             var arg = itt.next();
             if (arg.equals("--open-lan")) {
-                OpenToLAN.open();
+                openToLan = true;
             }
-            if (arg.equals("-velocity")) {
+            if (arg.equals("--velocity") || arg.equals("-v")) {
                 var secret = itt.hasNext() ? itt.next() : null;
                 if (secret != null) {
                     auth = new Auth.Velocity(secret);
@@ -111,6 +110,12 @@ public class Main {
                 } else {
                     Main.LOGGER.error("Please Provide a velocity secret!");
                 }
+            }
+            if (arg.equals("--cracked") || arg.equals("-c")) {
+                isCracked = true;
+            }
+            if (arg.equals("--debug") || arg.equals("-d")) {
+                IS_DEBUG = true;
             }
         }
         try {
@@ -169,6 +174,8 @@ public class Main {
         MinecraftServer.getGlobalEventHandler().addChild(AccessoryBag.LISTENER);
         MinecraftServer.getGlobalEventHandler().addChild(Galatea.LISTENER);
         MinecraftServer.getGlobalEventHandler().addChild(Minion.LISTENER);
+        MinecraftServer.getGlobalEventHandler().addChild(SlayerEntity.LISTENER);
+        MinecraftServer.getGlobalEventHandler().addChild(InputGui.LISTENER);
         MinecraftServer.getGlobalEventHandler().addListener(ServerTickMonitorEvent.class, serverTickMonitorEvent -> tickDelay = (long) serverTickMonitorEvent.getTickMonitor().getTickTime());
         for (Potion potion : Potion.values()) IPotion.potions.put(potion.getId(), potion);
         MinecraftServer.getPacketListenerManager().setPlayListener(ClientDebugSampleSubscriptionPacket.class, (ignored, player) -> {
@@ -226,6 +233,9 @@ public class Main {
             if (args.length > 1) port = Integer.parseInt(args[1]);
         } catch (Exception ignored) {
         }
+        if (openToLan) {
+            OpenToLAN.open();
+        }
         var key = Key.key("skyblock", "moonglare");
         Galatea.MOONGLARE_KEY = MinecraftServer.getBiomeRegistry().register(key, Galatea.MOONGLARE);
         server.start(host, port);
@@ -245,7 +255,7 @@ public class Main {
                             MinecraftServer.getCommandManager().execute(console, in);
                         }
                     } else {
-                        System.out.println("The command " + (in.split(" ")[0]) + " is not existing!");
+                        System.out.println("The command " + (in.split(" ")[0]) + " does not exist!");
                     }
                 } catch (Exception e) {
                     if (!running.get()) return;

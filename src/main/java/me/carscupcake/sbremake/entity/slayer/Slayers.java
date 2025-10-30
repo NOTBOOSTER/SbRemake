@@ -1,5 +1,6 @@
 package me.carscupcake.sbremake.entity.slayer;
 
+import me.carscupcake.sbremake.config.ConfigSection;
 import me.carscupcake.sbremake.entity.SkyblockEntity;
 import me.carscupcake.sbremake.entity.slayer.voidgloom.VoidgloomSeraphI;
 import me.carscupcake.sbremake.entity.slayer.voidgloom.VoidgloomSeraphII;
@@ -82,12 +83,12 @@ public enum Slayers implements ISlayer {
         }
 
         @Override
-        public SlayerRngMeter createRngMeter(SkyblockPlayer player) {
+        public SlayerRngMeter createRngMeter(SkyblockPlayer player, ConfigSection section) {
             if (rngMeterEntries.isEmpty()) {
                 for (RngMeterEntry entry : getRngMeterEntries())
                     addRngMeterEntry(entry);
             }
-            return new SlayerRngMeter(player, this, rngMeterEntries, lootChancesEntries);
+            return new SlayerRngMeter(player, this, rngMeterEntries, lootChancesEntries, section);
         }
 
         private final Lazy<List<RngMeterEntry>> entries = new Lazy<>(() -> List.of(RevenantHorrorII.FOUL_FLESH, RevenantHorrorII.PESTILENCE_RUNE,
@@ -98,6 +99,17 @@ public enum Slayers implements ISlayer {
             return entries.get();
         }
 
+        @Override
+        public int getRequiredSlayerQuestXp(int tier) {
+            return switch (tier) {
+                case 1 -> 150;
+                case 2 -> 1_440;
+                case 3 -> 2_400;
+                case 4 -> 4_800;
+                case 5 -> 6_000;
+                default -> throw new IllegalStateException("Tier " + (tier) + " does not exist!");
+            };
+        }
 
 
         @Override
@@ -149,14 +161,7 @@ public enum Slayers implements ISlayer {
                 if (!r.canUse(player, null))
                     return false;
 
-            player.setSlayerQuest(new SlayerQuest(player.getSlayers().get(this), tier, switch (tier) {
-                case 1 -> 150;
-                case 2 -> 1_440;
-                case 3 -> 2_400;
-                case 4 -> 4_800;
-                case 5 -> 6_000;
-                default -> throw new IllegalStateException("Tier " + (tier) + " does not exist!");
-            }));
+            player.setSlayerQuest(new SlayerQuest(player.getSlayers().get(this), tier, getRequiredSlayerQuestXp(tier)));
             player.playSound(SoundType.ENTITY_ENDER_DRAGON_GROWL, Sound.Source.PLAYER, 1, 1);
             return true;
         }
@@ -237,12 +242,12 @@ public enum Slayers implements ISlayer {
         }
 
         @Override
-        public SlayerRngMeter createRngMeter(SkyblockPlayer player) {
+        public SlayerRngMeter createRngMeter(SkyblockPlayer player, ConfigSection section) {
             if (rngMeterEntries.isEmpty()) {
                 for (RngMeterEntry entry : getRngMeterEntries())
                     addRngMeterEntry(entry);
             }
-            return new SlayerRngMeter(player, this, rngMeterEntries, lootChancesEntries);
+            return new SlayerRngMeter(player, this, rngMeterEntries, lootChancesEntries, section);
         }
 
         private final Lazy<List<RngMeterEntry>> entries = new Lazy<>(() -> List.of(VoidgloomSeraphII.TWILIGHT_ARROW_POISON,
@@ -285,15 +290,20 @@ public enum Slayers implements ISlayer {
                 if (!r.canUse(player, null))
                     return false;
 
-            player.setSlayerQuest(new SlayerQuest(player.getSlayers().get(this), tier, switch (tier) {
+            player.setSlayerQuest(new SlayerQuest(player.getSlayers().get(this), tier, getRequiredSlayerQuestXp(tier)));
+            player.playSound(SoundType.ENTITY_ENDER_DRAGON_GROWL, Sound.Source.PLAYER, 1, 1);
+            return true;
+        }
+
+        @Override
+        public int getRequiredSlayerQuestXp(int tier) {
+            return switch (tier) {
                 case 1 -> 2_750;
                 case 2 -> 6_600;
                 case 3 -> 11_000;
                 case 4 -> 22_000;
                 default -> throw new IllegalStateException("Tier " + (tier) + " does not exist!");
-            }));
-            player.playSound(SoundType.ENTITY_ENDER_DRAGON_GROWL, Sound.Source.PLAYER, 1, 1);
-            return true;
+            };
         }
     };
     private final String name;

@@ -4,8 +4,10 @@ import com.google.gson.JsonObject;
 import lombok.Getter;
 import lombok.Setter;
 import me.carscupcake.sbremake.Stat;
+import me.carscupcake.sbremake.config.ConfigField;
 import me.carscupcake.sbremake.config.ConfigFile;
 import me.carscupcake.sbremake.config.ConfigSection;
+import me.carscupcake.sbremake.config.DefaultConfigItem;
 import me.carscupcake.sbremake.event.PlayerStatEvent;
 import me.carscupcake.sbremake.item.Lore;
 import me.carscupcake.sbremake.player.SkyblockPlayer;
@@ -14,15 +16,15 @@ import me.carscupcake.sbremake.player.hotm.impl.MiningFortune2;
 import me.carscupcake.sbremake.player.hotm.impl.MiningSpeed;
 import me.carscupcake.sbremake.player.hotm.impl.MiningSpeed2;
 import me.carscupcake.sbremake.util.StringUtils;
-import me.carscupcake.sbremake.util.item.ItemBuilder;
+import me.carscupcake.sbremake.util.gui.ItemBuilder;
 import net.minestom.server.event.Event;
 import net.minestom.server.event.EventNode;
 import net.minestom.server.item.ItemStack;
 import net.minestom.server.item.Material;
 
 @Getter
-@SuppressWarnings({"preview", "unchecked", "unused"})
-public abstract class HotmUpgrade {
+@SuppressWarnings({"unchecked", "unused"})
+public abstract class HotmUpgrade implements DefaultConfigItem {
     public static final EventNode<Event> LISTENER = EventNode.all("hotmUpgrades").addListener(PlayerStatEvent.class, event -> {
         if (event.stat() == Stat.MiningSpeed) {
             MiningSpeed upgrade = event.player().getHotm().getUpgrade(MiningSpeed.class);
@@ -53,9 +55,11 @@ public abstract class HotmUpgrade {
     });
     private final Class<? extends HotmUpgrade>[] priorUpgrades;
     //Level 0 -> not unlocked!
+    @ConfigField
     protected int level;
     private final SkyblockPlayer player;
     @Setter
+    @ConfigField
     private boolean enabled;
 
     @SafeVarargs

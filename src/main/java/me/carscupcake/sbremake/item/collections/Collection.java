@@ -1,8 +1,10 @@
 package me.carscupcake.sbremake.item.collections;
 
 import lombok.Getter;
+import me.carscupcake.sbremake.config.ConfigField;
 import me.carscupcake.sbremake.config.ConfigFile;
 import me.carscupcake.sbremake.config.ConfigSection;
+import me.carscupcake.sbremake.config.DefaultConfigItem;
 import me.carscupcake.sbremake.item.ISbItem;
 import me.carscupcake.sbremake.player.SkyblockPlayer;
 import me.carscupcake.sbremake.player.xp.SkyblockXpTask;
@@ -10,9 +12,9 @@ import me.carscupcake.sbremake.rewards.Reward;
 import me.carscupcake.sbremake.rewards.impl.SkyblockXpReward;
 import me.carscupcake.sbremake.util.StringUtils;
 import me.carscupcake.sbremake.util.TemplateItems;
-import me.carscupcake.sbremake.util.item.Gui;
-import me.carscupcake.sbremake.util.item.InventoryBuilder;
-import me.carscupcake.sbremake.util.item.ItemBuilder;
+import me.carscupcake.sbremake.util.gui.Gui;
+import me.carscupcake.sbremake.util.gui.InventoryBuilder;
+import me.carscupcake.sbremake.util.gui.ItemBuilder;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -28,8 +30,9 @@ import java.util.Map;
 import java.util.function.Function;
 
 @Getter
-public abstract class Collection implements SkyblockXpTask {
+public abstract class Collection implements SkyblockXpTask, DefaultConfigItem {
     private final SkyblockPlayer player;
+    @ConfigField
     private long progress;
     private final int[] levelProgress;
     private final List<List<Reward>> rewards;
@@ -42,8 +45,11 @@ public abstract class Collection implements SkyblockXpTask {
         this.rewards = rewards;
         this.maxLevel = levels.length;
         Assert.assertEquals(levels.length, rewards.size());
-        ConfigFile configFile = new ConfigFile("collections", player);
-        progress = configFile.get(getId(), ConfigSection.LONG, 0L);
+    }
+
+    @Override
+    public void load(ConfigSection section) {
+        DefaultConfigItem.super.load(section);
         level = 0;
         while (level < getMaxLevel() && levelProgress[level] <= progress) {
             level++;

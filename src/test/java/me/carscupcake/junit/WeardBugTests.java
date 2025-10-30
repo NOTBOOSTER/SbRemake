@@ -1,14 +1,22 @@
 package me.carscupcake.junit;
 
+import me.carscupcake.sbremake.util.ComponentUtil;
+import me.carscupcake.sbremake.util.TypeUtil;
 import me.carscupcake.sbremake.worlds.region.CuboidRegion;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import net.minestom.server.collision.BoundingBox;
+import net.minestom.server.coordinate.Point;
 import net.minestom.server.coordinate.Pos;
 import net.minestom.server.coordinate.Vec;
+import net.minestom.server.utils.Range;
+import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 
-import java.util.Set;
+import java.lang.reflect.*;
+import java.util.*;
 
 public class WeardBugTests {
     @ParameterizedTest
